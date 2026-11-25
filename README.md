@@ -1,8 +1,10 @@
 # QrTransfer
 
+[简体中文](README.zh-CN.md) · [Project homepage](https://qrtransfer.github.io/)
+
 Send a file from a Mac to an iPhone using the Mac’s screen and the iPhone’s camera. Once both apps are installed, transfers work without Wi-Fi, Bluetooth, a cable, or a cloud upload.
 
-[Project homepage](https://qrtransfer.github.io/)
+![QrSender showing a file being sent in Color ×3 mode](docs/qr-sender-demo.gif)
 
 ## Build from source
 
