@@ -1,15 +1,13 @@
 # iOS receiver prompt
 
-Build a single-screen SwiftUI iOS 16+ app "QrReceiver" that receives a file sent as a looping sequence of QR codes.
+Build a single-screen SwiftUI iOS 16+ app "QrReceiver" that receives a file shown on a Mac as a stream of (possibly colour) QR codes. Apple frameworks only, 2–3 Swift files, add `NSCameraUsageDescription`.
 
-**Scanning:** AVCaptureSession, back camera, preset `.hd1920x1080`, continuous autofocus, AVCaptureMetadataOutput with `.qr`. Full-screen preview layer. Handle every decoded string; never stop after the first scan; skip a string identical to the previous one cheaply.
+**Capture:** AVCaptureSession, back camera, `.hd1920x1080`, continuous autofocus, AVCaptureVideoDataOutput (BGRA, `alwaysDiscardsLateVideoFrames`, serial background queue). The sender may show mono or colour codes; handle both automatically with one pipeline. A colour image carries 3 independent QR codes, one per channel: for each of R, G, B, use `CIColorMatrix` to copy that channel into r, g and b (grayscale), then run `VNDetectBarcodesRequest` (symbologies `[.qr]`) and collect every `payloadStringValue`. A mono QR just yields the same string 3×. Skip strings already seen (`Set` of `hashValue`). Show the detected mode: "Color" if one camera frame gives ≥2 distinct strings, otherwise "Mono".
 
-**Frame format (ASCII):** `QRT1|<sid>|<idx>|<total>|<base64>` — split on `|` with maxSplits 4 (5 parts); ignore anything not starting with `QRT1|`. If `sid` differs from the current session, reset all state.
-- `idx 0` = metadata: base64 → JSON `{"name":String,"size":Int,"z":Bool,"sha256":String(lowercase hex)}`. It repeats every ~10 frames.
-- `idx 1..total-1` = data chunks: base64 → Data, store in `[Int: Data]`.
+**Frames** — split on `|`, ignore unless field 0 is `QRT2`; if `sid` changes, reset everything:
+- `QRT2|<sid>|M|<base64 JSON>` metadata `{"name":String,"size":Int,"z":Bool,"sha256":hex,"k":Int,"b":Int,"len":Int}` (k source blocks of b bytes).
+- `QRT2|<sid>|D|<i1,i2,…>|<base64>` fountain symbol = XOR of source blocks i1, i2, … (0-based).
 
-**Completion:** when metadata is present and every index `1..<total` is stored: concatenate chunks in index order; if `z` is true, decompress with `(data as NSData).decompressed(using: .zlib)` (raw deflate, Apple's format); verify SHA-256 (CryptoKit) equals `sha256`. On success: stop the session, write to `FileManager.default.temporaryDirectory/name`, success haptic, and present a share sheet (UIActivityViewController) so the user can Save to Files. On mismatch: show an error and reset.
+**Decode (LT peeling):** keep `known:[Int:Data]` and `pending:[(Set<Int>,Data)]`. For each symbol, XOR out every index already known; 0 left → drop; >1 left → append to pending; exactly 1 → store it in known, then re-process every pending entry containing that index (cascade). Done when metadata is present and all 0..<k are known: concatenate blocks in order, keep the first `len` bytes, if `z` then `(data as NSData).decompressed(using: .zlib)`, check SHA-256 (CryptoKit) equals `sha256`. On success, stop the camera, write to the temp dir as `name`, play a success haptic, and present UIActivityViewController. On mismatch, show an error and reset.
 
-**UI overlay:** file name, progress bar (received / (total-1)), received count, scan rate (frames/s), list of missing indices when fewer than 20 remain, Reset button.
-
-Add `NSCameraUsageDescription` to Info.plist. Keep it to 2–3 Swift files, no third-party dependencies.
+**UI overlay:** file name, detected mode, progress bar known/k, symbols received, QR decodes/s, Reset button.

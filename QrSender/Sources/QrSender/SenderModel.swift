@@ -6,19 +6,26 @@ import SwiftUI
 final class SenderModel: ObservableObject {
     @Published private(set) var fileName: String?
     @Published private(set) var fileSize = 0
-    @Published private(set) var encoded: EncodedFile?
-    @Published private(set) var position = 0
+    @Published private(set) var encoder: FountainEncoder?
     @Published private(set) var image: NSImage?
+    @Published private(set) var shownImages = 0
     @Published var errorMessage: String?
     @Published var isPlaying = false { didSet { restartTimer() } }
     @Published var fps: Double = 8 { didSet { restartTimer() } }
-    @Published var chunkSize: Double = 700
+    @Published var blockSize: Double = 700
+    @Published var colorMode = UserDefaults.standard.object(forKey: "colorMode") as? Bool ?? true {
+        didSet {
+            UserDefaults.standard.set(colorMode, forKey: "colorMode")
+            if !isPlaying { advance() }
+        }
+    }
 
     private var data: Data?
     private var timer: Timer?
 
-    var currentFrameIndex: Int { encoded.map { $0.playlist[position] } ?? 0 }
-    var loopSeconds: Double { Double(encoded?.playlist.count ?? 0) / fps }
+    var channels: Int { colorMode ? 3 : 1 }
+    /// Ideal time to deliver k blocks with ~20% fountain + metadata overhead, ignoring camera misses.
+    var estimatedSeconds: Double { Double(encoder?.meta.k ?? 0) * 1.2 / (fps * Double(channels)) }
 
     func load(url: URL) {
         do {
@@ -43,29 +50,26 @@ final class SenderModel: ObservableObject {
 
     func reencode() {
         guard let data, let fileName else { return }
-        encoded = FrameEncoder.encode(data: data, name: fileName, chunkSize: Int(chunkSize))
-        position = 0
-        render()
+        encoder = FountainEncoder(data: data, name: fileName, blockSize: Int(blockSize))
+        shownImages = 0
+        advance()
         restartTimer()
     }
 
-    func step(_ delta: Int) {
-        guard let count = encoded?.playlist.count, count > 0 else { return }
-        position = (position + delta + count) % count
-        render()
-    }
-
-    private func render() {
-        guard let encoded else { image = nil; return }
-        image = QRRenderer.image(for: encoded.frames[encoded.playlist[position]])
+    private func advance() {
+        guard let encoder else { image = nil; return }
+        image = colorMode
+            ? QRRenderer.colorImage((0 ..< 3).map { _ in encoder.next() })
+            : QRRenderer.image(for: encoder.next())
+        shownImages += 1
     }
 
     private func restartTimer() {
         timer?.invalidate()
         timer = nil
-        guard isPlaying, encoded != nil else { return }
+        guard isPlaying, encoder != nil else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 1 / fps, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.step(1) }
+            Task { @MainActor in self?.advance() }
         }
     }
 }

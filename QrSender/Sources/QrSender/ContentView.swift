@@ -21,9 +21,14 @@ struct ContentView: View {
                 Button("Open…") { model.openPanel() }
                 Button(model.isPlaying ? "Pause" : "Play") { model.isPlaying.toggle() }
                     .keyboardShortcut(.space, modifiers: [])
-                    .disabled(model.encoded == nil)
-                Button("◀︎") { model.step(-1) }.disabled(model.isPlaying || model.encoded == nil)
-                Button("▶︎") { model.step(1) }.disabled(model.isPlaying || model.encoded == nil)
+                    .disabled(model.encoder == nil)
+                Picker("Code", selection: $model.colorMode) {
+                    Text("Mono").tag(false)
+                    Text("Color ×3").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+                .help("Color overlays 3 QR codes in R/G/B (3× throughput). Use Mono if the phone decodes poorly.")
             }
 
             HStack {
@@ -31,8 +36,8 @@ struct ContentView: View {
                 Slider(value: $model.fps, in: 2 ... 20, step: 1)
             }
             HStack {
-                Text("Chunk \(Int(model.chunkSize))B").frame(width: 100, alignment: .leading)
-                Slider(value: $model.chunkSize, in: 200 ... 1500, step: 50) { editing in
+                Text("Block \(Int(model.blockSize))B").frame(width: 100, alignment: .leading)
+                Slider(value: $model.blockSize, in: 200 ... 1500, step: 50) { editing in
                     if !editing { model.reencode() }
                 }
             }
@@ -61,10 +66,10 @@ struct ContentView: View {
     }
 
     private var statusText: String {
-        guard let encoded = model.encoded, let name = model.fileName else { return "No file" }
+        guard let meta = model.encoder?.meta, let name = model.fileName else { return "No file" }
         let size = ByteCountFormatter.string(fromByteCount: Int64(model.fileSize), countStyle: .file)
-        return String(format: "frame %d/%d · %@ · %@%@ · loop %.0fs",
-                      model.currentFrameIndex, encoded.total - 1, name, size,
-                      encoded.meta.z ? " (zlib)" : "", model.loopSeconds)
+        return String(format: "%@ · shown %d · %d blocks · %@ · %@%@ · ≈%.0fs",
+                      model.colorMode ? "color" : "mono", model.shownImages, meta.k, name, size,
+                      meta.z ? " (zlib)" : "", model.estimatedSeconds)
     }
 }

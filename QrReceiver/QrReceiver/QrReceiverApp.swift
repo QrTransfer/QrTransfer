@@ -70,23 +70,25 @@ private struct ReceiverView: View {
                 .lineLimit(2)
                 .accessibilityAddTraits(.isHeader)
             ProgressView(
-                value: progress.expected == 0 && progress.name != nil ? 1 : Double(progress.received),
+                value: progress.expected == 0 && progress.name != nil ? 1 : Double(progress.known),
                 total: Double(max(progress.expected, 1))
             )
                 .tint(.mint)
                 .accessibilityLabel("File transfer progress")
             HStack {
-                Text("\(progress.received) / \(progress.expected) chunks")
+                Text("\(progress.known) / \(progress.expected) blocks")
                 Spacer()
-                Text("\(scanner.scanRate, format: .number.precision(.fractionLength(1))) frames/s")
+                Text(scanner.mode?.rawValue ?? "Waiting for QR")
             }
             .font(.subheadline.monospacedDigit())
             .foregroundStyle(.secondary)
-            if !progress.missing.isEmpty {
-                Text("Missing: \(progress.missing.map { String($0) }.joined(separator: ", "))")
-                    .font(.footnote.monospacedDigit())
-                    .foregroundStyle(.secondary)
+            HStack {
+                Text("\(progress.symbols) symbols")
+                Spacer()
+                Text("\(scanner.scanRate, format: .number.precision(.fractionLength(1))) QR decodes/s")
             }
+            .font(.subheadline.monospacedDigit())
+            .foregroundStyle(.secondary)
             if let message = scanner.message {
                 Text(message)
                     .font(.callout)
