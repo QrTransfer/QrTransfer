@@ -1,0 +1,4 @@
+.build/
+QrSender.app/
+.DS_Store
+.swiftpm/
