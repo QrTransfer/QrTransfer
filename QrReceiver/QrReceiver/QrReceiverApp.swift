@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 
 @main
-struct QrReceiveApp: App {
+struct QrReceiverApp: App {
     var body: some Scene {
         WindowGroup {
             ReceiverView()
@@ -52,7 +52,7 @@ private struct ReceiverView: View {
 
     private var header: some View {
         HStack {
-            Label("QrReceive", systemImage: "qrcode.viewfinder")
+            Label("QrReceiver", systemImage: "qrcode.viewfinder")
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Spacer()

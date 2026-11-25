@@ -19,7 +19,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <plist version="1.0">
 <dict>
   <key>CFBundleName</key><string>QrSender</string>
-  <key>CFBundleIdentifier</key><string>local.qrsender</string>
+  <key>CFBundleIdentifier</key><string>com.qrtransfer.sender</string>
   <key>CFBundleExecutable</key><string>QrSender</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>

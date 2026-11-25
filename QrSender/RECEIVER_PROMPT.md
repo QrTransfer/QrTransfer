@@ -1,6 +1,6 @@
 # iOS receiver prompt
 
-Build a single-screen SwiftUI iOS 16+ app "QrReceive" that receives a file sent as a looping sequence of QR codes.
+Build a single-screen SwiftUI iOS 16+ app "QrReceiver" that receives a file sent as a looping sequence of QR codes.
 
 **Scanning:** AVCaptureSession, back camera, preset `.hd1920x1080`, continuous autofocus, AVCaptureMetadataOutput with `.qr`. Full-screen preview layer. Handle every decoded string; never stop after the first scan; skip a string identical to the previous one cheaply.
 

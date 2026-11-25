@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>NSCameraUsageDescription</key>
-    <string>QrReceive uses the camera to receive files from a sequence of QR codes.</string>
+    <string>QrReceiver uses the camera to receive files from a sequence of QR codes.</string>
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>

@@ -15,7 +15,7 @@ final class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObject
     @Published var sharedFile: SharedFile?
 
     // The capture session, transfer, and rate counters are owned by this queue.
-    private let queue = DispatchQueue(label: "QrReceive.capture", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "QrReceiver.capture", qos: .userInitiated)
     private var transfer = Transfer()
     private var configured = false
     private var completed = false
