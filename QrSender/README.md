@@ -1,6 +1,6 @@
 # QrSender
 
-[简体中文使用说明](../README.zh-CN.md)
+[简体中文使用说明](../README.zh-CN.md) · [Windows version](../QrSender.Windows/)
 
 QrSender streams a file as a fountain-coded sequence of QR codes. See the [project README](../README.md) for iPhone setup and the [receiver specification](RECEIVER_PROMPT.md) for decoding details.
 

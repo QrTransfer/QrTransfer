@@ -1,2 +1,4 @@
 .DS_Store
 xcuserdata/
+/QrSender.Windows/bin/
+/QrSender.Windows/obj/

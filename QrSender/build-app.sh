@@ -3,8 +3,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/QrSender"
+swift build -c release "$@"
+BIN="$(swift build -c release "$@" --show-bin-path)/QrSender"
 APP="QrSender.app"
 
 [ -f Resources/AppIcon.icns ] || ./scripts/make-icon.sh
